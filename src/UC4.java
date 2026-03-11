@@ -1,8 +1,8 @@
 /**
- * BookMyStayApp - UC3: Centralized Room Inventory Management
+ * BookMyStayApp - UC4: Room Search & Availability Check
  *
- * Demonstrates centralized room availability using HashMap.
- * Displays room details and current availability.
+ * Demonstrates read-only search of available rooms.
+ * Only rooms with availability > 0 are displayed.
  *
  * Author: Your Name
  * Version: 1.0
@@ -10,7 +10,7 @@
 import java.util.HashMap;
 import java.util.Map;
 
-public class UC3 {
+public class UC4 {
 
     public static void main(String[] args) {
         HotelApplication app = new HotelApplication();
@@ -18,53 +18,66 @@ public class UC3 {
     }
 }
 
-/**
- * HotelApplication class handles the application flow.
- */
 class HotelApplication {
 
     public void start() {
-        System.out.println("===== Book My Stay - Room Availability =====");
+        System.out.println("===== Book My Stay - Room Search =====");
 
         // Create room objects
         Room singleRoom = new SingleRoom();
         Room doubleRoom = new DoubleRoom();
         Room suiteRoom = new SuiteRoom();
 
-        // Initialize centralized inventory
+        // Initialize centralized inventory (same as UC3)
         RoomInventory inventory = new RoomInventory();
         inventory.addRoom(singleRoom, 5);
-        inventory.addRoom(doubleRoom, 3);
+        inventory.addRoom(doubleRoom, 0); // simulate zero availability
         inventory.addRoom(suiteRoom, 2);
 
-        // Display room info and availability from centralized inventory
+        // Perform a search
+        RoomSearchService searchService = new RoomSearchService(inventory);
+
+        System.out.println("\nAvailable Rooms:");
         for (Room room : new Room[]{singleRoom, doubleRoom, suiteRoom}) {
-            System.out.println("\n--- " + room.getRoomType() + " ---");
-            room.displayRoomDetails();
-            System.out.println("Available: " + inventory.getAvailability(room));
+            if (searchService.isAvailable(room)) {
+                room.displayRoomDetails();
+                System.out.println("Available: " + inventory.getAvailability(room) + "\n");
+            }
         }
 
-        System.out.println("\nApplication finished.");
+        System.out.println("Application finished.");
     }
 }
 
 /**
- * Centralized room inventory management
+ * Search service provides read-only access to inventory
+ */
+class RoomSearchService {
+    private final RoomInventory inventory;
+
+    public RoomSearchService(RoomInventory inventory) {
+        this.inventory = inventory;
+    }
+
+    public boolean isAvailable(Room room) {
+        return inventory.getAvailability(room) > 0;
+    }
+}
+
+/**
+ * Centralized room inventory management (UC3)
  */
 class RoomInventory {
     private final Map<String, Integer> availabilityMap = new HashMap<>();
 
-    // Register a room type and its availability
     public void addRoom(Room room, int count) {
         availabilityMap.put(room.getRoomType(), count);
     }
 
-    // Retrieve availability for a given room
     public int getAvailability(Room room) {
         return availabilityMap.getOrDefault(room.getRoomType(), 0);
     }
 
-    // Update availability (for future use cases like booking)
     public void updateAvailability(Room room, int newCount) {
         availabilityMap.put(room.getRoomType(), newCount);
     }
